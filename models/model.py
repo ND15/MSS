@@ -1,4 +1,3 @@
-from hparams import hparams
 import tensorflow as tf
 from tensorflow import keras
 from keras.layers import Conv2D, Conv2DTranspose, LeakyReLU, ReLU, Concatenate
@@ -16,7 +15,7 @@ def conv_block(inputs, filters=16, kernel_size=5, strides=2, padding="same"):
 
 def deconv_block(inputs, filters=16, kernel_size=5, strides=2,
                  padding="same", concat=True, concat_input=None,
-                 concat_axis=3):
+                 concat_axis=3, dropout=False):
     if concat:
         x = Concatenate(axis=concat_axis)([inputs, concat_input])
         x = Conv2DTranspose(filters=filters, kernel_size=kernel_size,
@@ -25,6 +24,10 @@ def deconv_block(inputs, filters=16, kernel_size=5, strides=2,
         x = Conv2DTranspose(filters=filters, kernel_size=kernel_size,
                             strides=strides, padding=padding)(inputs)
     x = BatchNormalization()(x)
+
+    if dropout:
+        x = Dropout(0.5)(x)
+
     x = ReLU()(x)
     return x
 
@@ -42,13 +45,13 @@ def UNet(inputs=Input((512, 128, 1))):
 
     conv6 = conv_block(conv5, filters=512, kernel_size=5, strides=2)
 
-    deconv1 = deconv_block(conv6, filters=256, kernel_size=5, strides=2, concat=False)
+    deconv1 = deconv_block(conv6, filters=256, kernel_size=5, strides=2, concat=False, dropout=True)
 
     deconv2 = deconv_block(deconv1, filters=128, kernel_size=5, strides=2,
-                           concat=True, concat_axis=3, concat_input=conv5)
+                           concat=True, concat_axis=3, concat_input=conv5, dropout=True)
 
     deconv3 = deconv_block(deconv2, filters=64, kernel_size=5, strides=2,
-                           concat=True, concat_axis=3, concat_input=conv4)
+                           concat=True, concat_axis=3, concat_input=conv4, dropout=True)
 
     deconv4 = deconv_block(deconv3, filters=32, kernel_size=5, strides=2,
                            concat=True, concat_axis=3, concat_input=conv3)
@@ -67,4 +70,5 @@ def UNet(inputs=Input((512, 128, 1))):
 
 
 if __name__ == '__main__':
-    model = UNet()
+    unet = UNet()
+    unet.trainable_weights
