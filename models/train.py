@@ -1,7 +1,6 @@
 import numpy as np
-from keras import Input
-from keras.optimizers import Adam
 from models.model import UNet
+from models.model2 import mbb_model
 from hparams import *
 from librosa.util import find_files
 
@@ -27,11 +26,11 @@ def sampling(mix_mag, target_mag):
 
 
 if __name__ == '__main__':
-    mix_mag, target_mag = zip(*load_npz(target='accompaniment', first=-1))
-    model = UNet()
+    mix_mag, target_mag = zip(*load_npz(target='vocals', first=-1))
+    model = mbb_model()
     model.compile(optimizer="adam", loss="mean_absolute_error")
     for e in range(100):
         print(f'Epoch {e}')
         X, y = sampling(mix_mag, target_mag)
         model.fit(X, y, batch_size=BATCH[0], verbose=1, validation_split=0.01)
-        model.save('vocals_ln.h5', overwrite=True)
+        model.save('vocals_mbb.h5', overwrite=True)

@@ -64,11 +64,10 @@ def UNet(inputs=Input((512, 128, 1))):
 
     model = Model(inputs=inputs, outputs=deconv6)
 
-    model.summary()
+    # model.summary()
 
     return model
 
 
 if __name__ == '__main__':
     unet = UNet()
-    unet.trainable_weights
